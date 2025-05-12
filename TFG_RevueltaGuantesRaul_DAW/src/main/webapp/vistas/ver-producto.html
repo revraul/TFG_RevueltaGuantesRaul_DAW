@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title th:text="${producto.nombre}"></title>
+  </head>
+  
+  <body>
+    <div th:replace="~{header :: header}"></div>
+    
+    <div class="page-header">
+      <h1 class="container" th:text="${producto.nombre}"></h1>
+    </div>
+    
+    <main class="mt-5 container">
+      <div class="container" th:text="${mensaje}"></div>
+      <div class="row">
+        <div class="col-lg-6 col-12">
+          <div class="text-center">
+            <img th:src="@{/images/productos/{imagen}(imagen=${producto.imagen})}" class="img-portada">
+          </div>
+        </div>
+        
+        <div class="col-lg-6 col-12">
+          <h2 class="mb-5" th:text="${producto.nombre}"></h2>
+          <p class="mb-5" th:text="${producto.descripcion}"></p>
+          
+          <h4 class="text-end" th:text="${producto.precio} + ' €'"></h4>
+          <h5 class="text-end" th:text="'Stock disponible: ' + ${producto.stock} + ' unidades.'"></h5>
+          
+          <div class="text-end mt-5">
+            
+            <div th:if="${#authorization.hasAuthority('Cliente')}">
+              <form action="@{/cesta/addCesta/{id}(id=${producto.idProductos})}" method="post" onsubmit="return validarCantidad()">
+                <div class="row">
+                  <div class="form-floating col-6">
+                    <input type="number" min="1" max="200" class="form-control" id="cantidad" name="cantidad" placeholder="Cantidad" required>
+                    <label for="cantidad">Cantidad</label>
+                    <p th:id="mensajeStock" th:text="${alertastock}"></p>
+                  </div>
+                  <div class="col-6">
+                    <a class="btn btn-outline-primary me-3" href="javascript:history.back()">Volver</a>
+                    <input class="btn btn-primary" type="submit" value="Añadir">
+                  </div> 
+                </div>
+              </form>
+            </div>
+            
+            <div th:if="${#authorization.hasAuthority('Admin')}">
+              <form action="@{/addStock/{id}(id=${producto.idProductos})}" method="post">
+                <div class="row">
+                  <div class="form-floating col-6">
+                    <input type="number" min="1" max="200" class="form-control" id="stock" name="stock" placeholder="Stock" required>
+                    <label for="stock">Stock</label>
+                    <p th:text="${pocostock}"></p>
+                    <p th:id="mensajeStock" th:text="${alertastock}"></p>
+                  </div>
+                  <div class="col-6">
+                    <a class="btn btn-outline-primary me-3" href="javascript:history.back()">Volver</a>
+                    <input class="btn btn-primary" type="submit" value="Añadir">
+                  </div> 
+                </div>
+              </form>
+            </div>
+          
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <div th:replace="~{footer :: footer}"></div>
+    
+    <script type="text/javascript">
+      function validarCantidad() {
+        var cantidadInput = document.getElementById('cantidad');
+        var mensajeStock = document.getElementById('mensajeStock');
+
+        var cantidad = parseInt(cantidadInput.value);
+        var stockDisponible = /*[[${producto.stock}]]*/ 0;  // Necesitamos el valor del stock aquí
+        
+        if (cantidad > stockDisponible) {
+          mensajeStock.textContent = 'No hay suficiente stock disponible.';
+          return false; // Evita enviar el formulario
+        } else {
+          mensajeStock.textContent = ''; // Borra el mensaje de alerta
+          return true;
+        }
+      }
+    </script>
+  </body>
+</html>
